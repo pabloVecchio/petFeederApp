@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">PetFeed</string>
+    <string name="title_activity_node_mcuconfig">NodeMCUConfig</string>
+</resources>
