@@ -1,6 +1,7 @@
 package com.example.myapplication;
 
 public class lastMsgRcvClass {
+
     public String ok;
     public String update_id;
     public String message_id;

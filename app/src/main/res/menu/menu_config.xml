@@ -6,5 +6,6 @@
         android:id="@+id/c_NodeMCUWifi"
         android:icon="@android:drawable/ic_menu_preferences"
         android:title="NodeMCU Wifi"
+        android:visible="false"
         app:showAsAction="always" />
 </menu>

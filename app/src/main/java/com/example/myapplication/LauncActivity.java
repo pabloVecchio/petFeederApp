@@ -42,41 +42,8 @@ public class LauncActivity extends AppCompatActivity {
     private TextView tv_petName, tv_lastFeedHr, tv_lastFeedCnt, tv_lastUpdate;
     private ImageView iv_petPhoto;
     private ProgressBar pb_bowlFeed, pb_dayFeed, pb_stock, pb_Feed, pb_RefreshStatus;
-    private TelegramBotHandler myBot;
-    private  TelegramReciver myListenerBot;
     private lastMsgRcvClass lastMsg;
     private ProgressDialog progress;
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("telegramMsg");
-        registerReceiver(broadcastReceiver, intentFilter);
-
-        progress = new ProgressDialog(this);
-        progress.setMessage("Sincronizando información");
-        progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progress.setIndeterminate(true);
-        progress.show();
-
-        telegramBotHandlerService.startActionRcv( this,"", lastMsg.update_id );
-    }
-
-
-    @Override
-    public void onResume(){
-        super.onResume();
-        /*
-        progress = new ProgressDialog(this);
-        progress.setMessage("Sincronizando información");
-        progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progress.setIndeterminate(true);
-        progress.show();
-
-        telegramBotHandlerService.startActionRcv( this,"", lastMsg.update_id );
-        */
-    }
 
     BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -97,14 +64,17 @@ public class LauncActivity extends AppCompatActivity {
                 if (Cmd.equals("Feed")) {
                     tv_lastFeedHr.setText(strDate);
                     tv_lastFeedCnt.setText("( " + intent.getStringExtra("Cnt") + " gr )");
-                    pb_Feed.setVisibility(View.INVISIBLE);
+
                     setSharedPreferences("lastFeedHr", tv_lastFeedHr.getText().toString());
                     setSharedPreferences("lastFeedCnt", tv_lastFeedCnt.getText().toString());
+
+                    pb_Feed.setVisibility(View.INVISIBLE);
                 } else if (Cmd.equals("Status")) {
                     tv_lastUpdate.setText(strDate);
                     pb_bowlFeed.setProgress(Integer.parseInt(intent.getStringExtra("Data1")));
                     pb_dayFeed.setProgress(Integer.parseInt(intent.getStringExtra("Data2")));
                     pb_stock.setProgress(Integer.parseInt(intent.getStringExtra("Data3")));
+
                     setSharedPreferences("bowlFeed", Integer.toString(pb_bowlFeed.getProgress()));
                     setSharedPreferences("dayFeed", Integer.toString(pb_dayFeed.getProgress()));
                     setSharedPreferences("stock", Integer.toString(pb_stock.getProgress()));
@@ -117,30 +87,26 @@ public class LauncActivity extends AppCompatActivity {
     };
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        unregisterReceiver(broadcastReceiver);
-    }
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_launc);
 
         final int grPorcion = 25;
 
-        b_feedManual = findViewById(R.id.button_feedManual);
-        tv_petName = findViewById(R.id.textView_petName);
-        tv_lastFeedHr = findViewById(R.id.textView_lastFeedHr);
-        tv_lastFeedCnt = findViewById(R.id.textView_lastFeedCnt);
-        tv_lastUpdate = findViewById(R.id.textView_lastUpdate);
-        iv_petPhoto = findViewById(R.id.imageView_petPhoto);
-        pb_bowlFeed = findViewById(R.id.progressBar_bowlFeed);
-        pb_dayFeed = findViewById(R.id.progressBar_dayFeed);
-        pb_stock = findViewById(R.id.progressBar_stockFeed);
-        pb_Feed = findViewById(R.id.progressBar_Feed);
+        b_feedManual    = findViewById(R.id.button_feedManual);
+        tv_petName      = findViewById(R.id.textView_petName);
+        tv_lastFeedHr   = findViewById(R.id.textView_lastFeedHr);
+        tv_lastFeedCnt  = findViewById(R.id.textView_lastFeedCnt);
+        tv_lastUpdate   = findViewById(R.id.textView_lastUpdate);
+        iv_petPhoto     = findViewById(R.id.imageView_petPhoto);
+        pb_bowlFeed     = findViewById(R.id.progressBar_bowlFeed);
+        pb_dayFeed      = findViewById(R.id.progressBar_dayFeed);
+        pb_stock        = findViewById(R.id.progressBar_stockFeed);
+        pb_Feed         = findViewById(R.id.progressBar_Feed);
         b_RefreshStatus = findViewById(R.id.button_RefreshStatus);
-        pb_RefreshStatus = findViewById(R.id.progressBar_RefreshStatus);
+        pb_RefreshStatus= findViewById(R.id.progressBar_RefreshStatus);
+
         pb_Feed.setVisibility(View.INVISIBLE);
         pb_RefreshStatus.setVisibility(View.INVISIBLE);
 
@@ -162,11 +128,9 @@ public class LauncActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 final AlertDialog.Builder feedDialog = new AlertDialog.Builder(LauncActivity.this);
-                TextView tv =  new TextView(LauncActivity.this);
-
                 LayoutInflater inflater = getLayoutInflater();
                 View layoutFromInflater = inflater.inflate(R.layout.manual_feed_alert_dialog, null);
-                final TextView tv_manualFeed = (TextView) layoutFromInflater.findViewById(R.id.textView_manualFeed);
+                final TextView tv_manualFeed = layoutFromInflater.findViewById(R.id.textView_manualFeed);
                 final SeekBar seek= layoutFromInflater.findViewById(R.id.seekBar_manualFeed);
 
                 feedDialog.setView(layoutFromInflater);
@@ -187,7 +151,7 @@ public class LauncActivity extends AppCompatActivity {
                             case 1:   porciones += "1/4"; break;
                             case 2:   porciones += "1/2"; break;
                             case 3:   porciones += "3/4"; break;
-                                default:  break;
+                            default:  break;
                         }
 
                         porciones += " (" + progress*grPorcion  + " gr )";
@@ -195,12 +159,10 @@ public class LauncActivity extends AppCompatActivity {
                     }
 
                     public void onStartTrackingTouch(SeekBar arg0) { }
-
                     public void onStopTrackingTouch(SeekBar seekBar) { }
                 });
 
-                feedDialog.setPositiveButton("OK", new DialogInterface.OnClickListener()
-                {
+                feedDialog.setPositiveButton("OK", new DialogInterface.OnClickListener(){
                     public void onClick(DialogInterface dialog, int which) {
                         pb_Feed.setVisibility(View.VISIBLE);
                         telegramBotHandlerService.startActionSend(LauncActivity.this, "Node,Feed," + Integer.toString((seek.getProgress() +1 ) * grPorcion ), lastMsg.update_id );
@@ -221,11 +183,39 @@ public class LauncActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("telegramMsg");
+        registerReceiver(broadcastReceiver, intentFilter);
+
+        progress = new ProgressDialog(this);
+        progress.setMessage("Sincronizando información");
+        progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progress.setIndeterminate(true);
+        progress.show();
+
+        telegramBotHandlerService.startActionRcv( this, lastMsg.update_id );
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unregisterReceiver(broadcastReceiver);
+    }
+
+
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_config, menu);
         return true;
     }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -237,9 +227,7 @@ public class LauncActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
-
-    public void showNodeMCUWifiConfig ()
-    {
+    public void showNodeMCUWifiConfig (){
         String SSID = "";
         ConnectivityManager connManager = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
@@ -264,11 +252,10 @@ public class LauncActivity extends AppCompatActivity {
     int lastContexMenuCreated = 0;
     @Override // Cada vez que se vaya a mostrar un menu contextual se recurre a este metodo. Puedo seleccionar que menu mostrar filtrando por la View que llega
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        switch (v.getId())
-        {
+        switch (v.getId()){
             case R.id.textView_petName: getMenuInflater().inflate(R.menu.menu_main_change, menu);   break;
             case R.id.imageView_petPhoto: getMenuInflater().inflate(R.menu.menu_main_change, menu); break;
-                default:   break;
+            default:   break;
         }
         lastContexMenuCreated = v.getId();
         super.onCreateContextMenu(menu, v, menuInfo);
@@ -303,7 +290,7 @@ public class LauncActivity extends AppCompatActivity {
 
                         break;
                     case R.id.imageView_petPhoto:
-
+                            // To do, ver de como poner una foto
                         break;
 
                 }
@@ -314,29 +301,25 @@ public class LauncActivity extends AppCompatActivity {
     }
 
 
-    public void refreshStatus (View view)
-    {
+    public void refreshStatus (View view){
         pb_RefreshStatus.setVisibility(View.VISIBLE);
         telegramBotHandlerService.startActionSend(LauncActivity.this, "Node,Status", lastMsg.update_id );
     }
 
-    void setSharedPreferences (String key, String value)
-    {
+    void setSharedPreferences (String key, String value){
         SharedPreferences preferences = getSharedPreferences("datos", Context.MODE_PRIVATE);
         SharedPreferences.Editor editPref = preferences.edit();
         editPref.putString(key,value);
         editPref.commit();
     }
 
-    String getSharedPrefences (String key)
-    {
+    String getSharedPrefences (String key){
         SharedPreferences preferences = getSharedPreferences("datos", Context.MODE_PRIVATE);
         String result = preferences.getString(key, "");
         return result;
     }
 
-    Integer getSharedPrefencesInt (String key)
-    {
+    Integer getSharedPrefencesInt (String key){
         SharedPreferences preferences = getSharedPreferences("datos", Context.MODE_PRIVATE);
         Integer result = Integer.parseInt(preferences.getString(key, "0"));
         return result;
